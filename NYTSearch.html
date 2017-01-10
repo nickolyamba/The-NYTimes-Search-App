@@ -19,147 +19,126 @@
 			$(function() {
 			  var pageCount = 0;
 
-			  $("#nextPageButton").click(function() {		
-			  		pageCount++;
-			  		
-			  		// empty all the div's
-			  		$('#pageNumber').empty();
-			  		for (var i = 0; i < 10; i++) {
+				$("#nextPageButton").click(function() {		
+					pageCount++;
+					
+					// empty all the div's
+					$('#pageNumber').empty();
+					for (var i = 0; i < 10; i++) {
 						$('#newsItem'+i).empty();
 					}
-					searching();
-				  	// prevent default submit action
-	    			return false;
+					paging();
+					// prevent default submit action
+					return false;
 
-  				});//click button
+				});//click button
 
-  				$("#prevPageButton").click(function(){
-			  		pageCount--;
-			  		
-			  		// empty all the div's
-			  		$('#pageNumber').empty();
-			  		for (var i = 0; i < 10; i++) {
+				$("#prevPageButton").click(function(){
+					pageCount--;
+					
+					// empty all the div's
+					$('#pageNumber').empty();
+					for (var i = 0; i < 10; i++) {
 						$('#newsItem'+i).empty();
 					}
-					searching();
-				  	// prevent default submit action
-	    			return false;
+					paging();
+					// prevent default submit action
+					return false;
 
-  				});//click button
-
-  			// function that is calles when "next page" or "prev page" are clicked
-  			function searching(){
-  				var key = "a88ece958afce75643acb9a7cfc38fc3:15:68057138";
-			   	var searchTerm = $("#searchTerm").val();
-			   	var beginDate = $("#altBeginDate").val();
-			   	var endDate = $("#altEndDate").val();
-
-			   	// prvevent pageCount be negative
-			   	if (pageCount < 0){
-			   		pageCount = 0;
-			   	}
-
-			   	// create query string
-			    var dataString = 'q='+searchTerm + '&page='+pageCount + 
-			    '&begin_date='+ beginDate +'&end_date='+endDate + 
-			    '&sort=newest' +'&api-key='+key;
-			    
-			    $.ajax({
-				      type: "GET",
-				      url: 'http://api.nytimes.com/svc/search/v2/articlesearch.json',
-				      data: dataString,
-
-				      success: function(result) {
-				      	//console.log(result);
-				      	$('#pageNumber').empty();
-				      	$('#pageNumberBottom').empty();
-				  		for (var i = 0; i < 10; i++) {
-							$('#newsItem'+i).empty();
-						}
-
-				      	var article = result.response.docs;
-				      	for (var i = 0, len = article.length; i < len; i++) {
-  							var link = article[i].web_url;
-  							var headline = article[i].headline.main;
-  							$('#newsItem'+i).append('<a href='+ link +'>'+ headline +"</a>");
-						}
-						$('#pageNumber').append('page '+ (pageCount+1));
-						$('#pageNumberBottom').append('page '+ (pageCount+1));
-
-				      },
-
-				      error: function(xhr, textStatus, error){
-				      		console.log('error'+ error);
-						if (textStatus == "error") {
-
-							 $("#newsItem0").empty();
-
-							 $("#newsItem0").append("The requested page was: " + this.url + "<br>The error number returned was: " + xhr.status + "<br>The error message was: " + xhr.statusText );
-
-						}
-
+				});//click button
+				
+				// sends http GET request
+				function search(key, searchTerm, beginDate, endDate, isPagingPressed){
+					// return if any of the search terms is empty
+					if(searchTerm == '' || beginDate == '' || endDate == '')
+					{
+						 $("#newsItem0").empty();
+						 $("#newsItem0").append("Input Error! Search requires keyword and a range of dates!");
+						return;
 					}
-    			});//ajax
+					// set page count
+					if(isPagingPressed){
+						// prvevent pageCount from being negative
+						if (pageCount < 0){
+							pageCount = 0;
+						} 
+					}
+					else
+						// set to 0 to get to the 1st page when pressing search;
+						pageCount = 0;
 
-			    // prevent default submit action
-    			return false;
-  			}
-
-			  $("#searchButton").click(function(){
-				    // define query parameters
-				    var key = "a88ece958afce75643acb9a7cfc38fc3:15:68057138";
-				   	var searchTerm = $("#searchTerm").val();
-				   	var beginDate = $("#altBeginDate").val();
-				   	var endDate = $("#altEndDate").val();
-
-				   	// set to 0 to get to the 1st page when pressing search;
-				   	pageCount = 0;
-
-				   	// create query string
-				    var dataString = 'q='+searchTerm + '&page='+pageCount + 
-				    '&begin_date='+ beginDate +'&end_date='+endDate + 
-				    '&sort=newest' +'&api-key='+key;
-				    
-				    $.ajax({
-					      type: "GET",
-					      url: 'http://api.nytimes.com/svc/search/v2/articlesearch.json',
-					      data: dataString,
-
-					      success: function(result) {
-					      	//console.log(result);
-					      	$('#pageNumber').empty();
-					      	$('#pageNumberBottom').empty();
-					  		for (var i = 0; i < 10; i++) {
+					// create query string
+					var dataString = 'q='+searchTerm + '&page='+pageCount + 
+					'&begin_date='+ beginDate +'&end_date='+endDate + 
+					'&sort=newest' +'&api-key='+key;
+					
+					$.ajax({
+						  type: "GET",
+						  url: 'http://api.nytimes.com/svc/search/v2/articlesearch.json',
+						  data: dataString,
+						  
+						  success: function(result) {
+							$('#pageNumber').empty();
+							$('#pageNumberBottom').empty();
+							for (var i = 0; i < 10; i++) {
 								$('#newsItem'+i).empty();
 							}
 
-					      	var article = result.response.docs;
-					      	for (var i = 0, len = article.length; i < len; i++) {
-									var link = article[i].web_url;
-									var headline = article[i].headline.main;
-									$('#newsItem'+i).append('<a href='+ link +'>'+ headline +"</a>");
+							var article = result.response.docs;
+							for (var i = 0, len = article.length; i < len; i++) {
+								var link = article[i].web_url;
+								var headline = article[i].headline.main;
+								$('#newsItem'+i).append('<a href='+ link +'>'+ headline +"</a>");
 							}
 							$('#pageNumber').append('page '+ (pageCount+1));
 							$('#pageNumberBottom').append('page '+ (pageCount+1));
 
-					      },
+						  },
 
-					      error: function(xhr, textStatus, error){
-					      		console.log('error'+ error);
+						error: function(xhr, textStatus, error){
+								//console.log('error'+ error);
+								console.log(xhr.getAllResponseHeaders());
 							if (textStatus == "error") {
-
+								 
 								 $("#newsItem0").empty();
+								 $("#newsItem0").append("Error: " + xhr.status + "<br>The error message was: " + xhr.statusText );
+								 $("#newsItem5").empty()
+								 $("#newsItem5").append("Calmado, Tiger! Too many requests per time interval")
 
-								 $("#newsItem0").append("The requested page was: " + this.url + "<br>The error number returned was: " + xhr.status + "<br>The error message was: " + xhr.statusText );
 							}
-
 						}
+						
 					});//ajax
 
-				    // prevent default submit action
+					// prevent default submit action
+					//return false;
+				}
+				
+				// function that is called when "next page" or "prev page" are clicked
+				function paging(){
+					var key = 'd52e52cea3e74f7995b2e58a735ce118';
+					var searchTerm = $("#searchTerm").val();
+					var beginDate = $("#altBeginDate").val();
+					var endDate = $("#altEndDate").val();
+
+					search(key, searchTerm, beginDate, endDate, false);
+					// prevent default submit action
 					return false;
-			
-  			});//click button
+				}
+
+				$("#searchButton").click(function(){
+						// define query parameters
+						var key = "d52e52cea3e74f7995b2e58a735ce118";
+						var searchTerm = $("#searchTerm").val();
+						var beginDate = $("#altBeginDate").val();
+						var endDate = $("#altEndDate").val();
+						
+						search(key, searchTerm, beginDate, endDate, false);
+						
+						// prevent default submit action
+						return false;
+				
+				});//click button
 		});
 
 		</script>
@@ -208,21 +187,21 @@
 				<div id="forBackground">
 		        <form class="dataInput" id="dataInput" role="search">
 		        
-		            <input type="text" placeholder=" search term" name="searchTerm" id="searchTerm" value="" required/>
+		            <input type="text" placeholder="enter keyword" name="searchTerm" id="searchTerm" value="" required autofocus/>
 
 		            <input type="text" data-type="date" placeholder=" begin date" name="beginDate" id="beginDate"/>
 		           
 		            <input type="text" data-type="date" placeholder=" end date" id="endDate"/>
 
-		            <button class="button" id="searchButton" type="submit">Search</button>
+		            <button class="button" id="searchButton" type="button">Search</button>
 		            <!-- Change the date format behind the scene -->
 		            <div id="altBeginDate"></div> <div id="altEndDate"></div>
 		        </form><br>
 
 		        
-				<button class="button" id="prevPageButton" type="submit">Prev Page</button>
+				<button class="button" id="prevPageButton" type="button">Prev Page</button>
 				<div id="pageNumber"></div> 
-				<button class="button" id="nextPageButton" type="submit">Next Page</button><br><br>
+				<button class="button" id="nextPageButton" type="button">Next Page</button><br><br>
 				
 
 				<div class="news" id="newsItem0"></div><br>
@@ -249,6 +228,10 @@
 				<div id="pageNumberBottom"></div>
 			
 			</div>
+			</div>
+			
+			<div class="poweredby">
+				<a href="http://www.nytimes.com/"><img src="images/poweredby_nytimes_200b.png"></a><br>
 			</div>
 		</div>
 
