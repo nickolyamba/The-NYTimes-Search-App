@@ -101,6 +101,11 @@ body , div, input, button
 	text-align: center;
 }
 
+	
+.poweredby {
+	margin:0 auto;
+}
+
 #pageNumber, #pageNumberBottom{
 	/*border: 1px solid gray;
 	padding-bottom: 5pt;*/
